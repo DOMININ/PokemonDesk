@@ -34,12 +34,37 @@ const enemy = {
   renderProgressBar: renderProgressBar,
 }
 
+const buttonClickCounter = ($btnEl) => {
+  const MAX_CLICKS = 6
+  let count = 0
+
+  return ($btnEl) => {
+    count++
+
+    if (count === MAX_CLICKS) {
+      disableButton($btnEl)
+    }
+
+    console.log('Кол-во нажатий', count)
+    console.log('Осталось нажатий', MAX_CLICKS - count)
+  }
+}
+
+const countKick = buttonClickCounter()
+const countBump = buttonClickCounter()
+
 $btnKick.addEventListener('click', function () {
+  const $btnEl = this
+
+  countKick($btnEl)
   character.changeHP(random(MAX_DAMAGE_KICK))
   enemy.changeHP(random(MAX_DAMAGE_KICK))
 })
 
 $btnBump.addEventListener('click', function () {
+  const $btnEl = this
+
+  countBump($btnEl)
   enemy.changeHP(random(MAX_DAMAGE_BUMP))
 })
 
