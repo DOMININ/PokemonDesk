@@ -14,7 +14,7 @@ function generateLog(firstPerson, secondPerson, count, damageHP, defaultHP) {
     `${firstPerson.name} пытался что-то сказать, но вдруг, неожиданно ${secondPerson.name} со скуки, разбил бровь сопернику. -${count}, [${damageHP}/${defaultHP}]`,
   ]
 
-  return logs[random(logs.length) - 1]
+  return logs[random(logs.length - 1, 0)]
 }
 
 function createLog(firstPerson, secondPerson, count, damageHP, defaultHP) {

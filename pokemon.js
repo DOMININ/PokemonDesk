@@ -8,7 +8,7 @@ class Selectors {
 }
 
 class Pokemon extends Selectors {
-  constructor({ name, hp, type, selectors }) {
+  constructor({ name, hp, type, selectors, attacks = [] }) {
     super(selectors)
 
     this.name = name
@@ -17,6 +17,7 @@ class Pokemon extends Selectors {
       damageHP: hp,
     }
     this.type = type
+    this.attacks = attacks
 
     this.renderHP()
   }
@@ -42,6 +43,15 @@ class Pokemon extends Selectors {
     } = this
     const coeff = defaultHP / damageHP
     const percent = 100 / coeff
+
+    if (percent <= 60 && percent >= 20) {
+      elProgressbar.classList.add('low')
+    } else if (percent < 20) {
+      elProgressbar.classList.add('critical')
+    } else {
+      elProgressbar.classList.remove('low')
+      elProgressbar.classList.remove('critical')
+    }
 
     elProgressbar.style.width = percent + '%'
   }
