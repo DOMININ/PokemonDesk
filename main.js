@@ -1,50 +1,81 @@
-import { random, getElById, disableButton } from './utils.js'
+import { random, buttonClickCounter, getElById } from './utils.js'
 import Pokemon from './pokemon.js'
 import createLog from './logs.js'
+import { pokemons } from './pokemons.js'
 
-const player1 = new Pokemon({ name: 'Pikachu', hp: 500, type: 'electric', selectors: 'character' })
-const player2 = new Pokemon({ name: 'Charmander', hp: 250, type: 'fire', selectors: 'enemy' })
+const $control = document.querySelector('.control')
+const $btnStart = document.createElement('button')
+$btnStart.classList.add('button')
+$btnStart.innerText = 'Начать игру'
+$control.appendChild($btnStart)
 
-const $btnKick = getElById('btn-kick')
-const $btnBump = getElById('btn-bump')
-
-const MAX_DAMAGE_KICK = 40
-const MAX_DAMAGE_BUMP = 60
-
-const buttonClickCounter = (num, el) => {
-  const MAX_CLICKS = num
-  let count = MAX_CLICKS
-
-  const innerText = el.innerText
-  el.innerText = `${innerText} (${count})`
-
-  return () => {
-    count--
-
-    if (count === 0) {
-      disableButton(el)
-    }
-
-    el.innerText = `${innerText} (${count})`
-    return count
-  }
+const resetGame = () => {
+  const allButtons = document.querySelectorAll('.control .button')
+  allButtons.forEach(($item) => $item.remove())
+  $control.appendChild($btnStart)
 }
 
-const countJolt = buttonClickCounter(6, $btnKick)
-$btnKick.addEventListener('click', function () {
-  countJolt()
-  player1.changeHP(random(MAX_DAMAGE_KICK), (count, damageHP, defaultHP) => {
-    createLog(player1, player2, count, damageHP, defaultHP)
-  })
-  player2.changeHP(random(MAX_DAMAGE_KICK), (count, damageHP, defaultHP) => {
-    createLog(player2, player1, count, damageHP, defaultHP)
-  })
-})
+const autoKick = (player1, player2) => {
+  player1.changeHP(
+    random(player2.attacks[0].maxDamage, player2.attacks[0].minDamage),
+    (count, damageHP, defaultHP) => {
+      createLog(player1, player2, count, damageHP, defaultHP)
 
-const countBump = buttonClickCounter(10, $btnBump)
-$btnBump.addEventListener('click', function () {
-  countBump()
-  player2.changeHP(random(MAX_DAMAGE_BUMP), (count, damageHP, defaultHP) => {
-    createLog(player2, player1, count, damageHP, defaultHP)
+      if (damageHP === 0) {
+        resetGame()
+      }
+    },
+  )
+}
+
+$btnStart.addEventListener('click', () => {
+  $btnStart.remove()
+
+  // TODO: это надо куда-то вынести
+  const characterPokemon = pokemons[random(pokemons.length - 1, 0)]
+  const enemyPokemons = pokemons.filter((pok) => pok.name !== characterPokemon.name)
+  const enemyPokemon = enemyPokemons[random(enemyPokemons.length - 1, 0)]
+
+  const $characterImg = getElById('sprite-character')
+  $characterImg.src = characterPokemon.img
+
+  const $characterName = getElById('name-character')
+  $characterName.innerText = characterPokemon.name
+
+  const $enemyImg = getElById('sprite-enemy')
+  $enemyImg.src = enemyPokemon.img
+
+  const $enemyName = getElById('name-enemy')
+  $enemyName.innerText = enemyPokemon.name
+  // -------------
+
+  const player1 = new Pokemon({
+    ...characterPokemon,
+    selectors: 'character',
+  })
+
+  let player2 = new Pokemon({
+    ...enemyPokemon,
+    selectors: 'enemy',
+  })
+
+  player1.attacks.forEach((item) => {
+    const $btn = document.createElement('button')
+    $btn.classList.add('button')
+    $btn.innerText = item.name
+
+    const btnCount = buttonClickCounter(item.maxCount, $btn)
+
+    $btn.addEventListener('click', () => {
+      player2.changeHP(random(item.maxDamage, item.minDamage), (count, damageHP, defaultHP) => {
+        createLog(player2, player1, count, damageHP, defaultHP)
+      })
+
+      autoKick(player1, player2)
+
+      btnCount()
+    })
+
+    $control.appendChild($btn)
   })
 })
